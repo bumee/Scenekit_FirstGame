@@ -1,33 +1,58 @@
 import SwiftUI
 import SceneKit
 
-struct ContentView: View {
-    var scene: SCNScene? {
-        SCNScene(named: "art.scnassets/ship.scn")
+struct SceneKitView: UIViewRepresentable {
+    
+    @Binding var test: Bool
+//    @Binding var sceneView: SCNView?
+    var sceneView: SCNView? = SCNView()
+    var scene: SCNScene? = SCNScene(named: "art.scnassets/ship.scn")
+    
+    func makeUIView(context: Context) -> SCNView {
+        sceneView?.allowsCameraControl = true
+        sceneView?.autoenablesDefaultLighting = true
+        sceneView?.scene = scene
+        return sceneView!
     }
-
-    var cameraNode: SCNNode? {
-        let cameraNode = SCNNode()
-        cameraNode.camera = SCNCamera()
-        cameraNode.position = SCNVector3(x: 0, y: 0, z: 15)
-        return cameraNode
+    
+    func updateUIView(_ sceneView: SCNView, context: Context) {
+        if test {
+            rotate()
+            test.toggle()
+        }
     }
-
-    var body: some View {
-        ZStack {
-            SceneView(
-                scene: scene,
-                pointOfView: cameraNode,
-                options: [
-                    .allowsCameraControl,
-                    .autoenablesDefaultLighting,
-                    .temporalAntialiasingEnabled
-                ]
-            )
-            .ignoresSafeArea(.all)
+    
+    func rotate (){
+        let scene = self.sceneView?.scene
+        let box = scene!.rootNode.childNodes
+        let action = SCNAction.rotateBy(x: 0, y: CGFloat.pi, z: 0, duration: 1)
+        for target in box {
+            target.runAction(action)
         }
     }
 }
+
+struct ContentView: View {
+    
+//    @State var t = SceneKitView(sceneView: Binding<SCNView?>)
+    @State private var test1: Bool = false
+    
+    var body: some View {
+        
+        VStack {
+            SceneKitView(test: $test1)
+                .frame(width: 300, height: 300)
+            
+            Button("rotate"){
+                test1 = true
+                print(test1)
+            }
+           
+        }
+        
+    }
+}
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
