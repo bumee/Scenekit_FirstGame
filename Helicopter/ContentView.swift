@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var deltaX : CGFloat = 0
     @State private var deltaY : CGFloat = 0
     @State private var isPaused = false
+    @State private var backgroundColor: Color = Color.black
     @State private var score = 0
     
     @State var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
@@ -26,11 +27,12 @@ struct ContentView: View {
             ZStack{
 
                 Helicopter()
-                    .position(self.heliPosition)
+//                    .position(self.heliPosition)
+                    .position(x: self.heliPosition.x + dragOffset.width, y: self.heliPosition.y + dragOffset.height)
                     .onReceive(self.timer) {_ in
                         self.gravity()
                     }
-                    .offset(x: position.width + dragOffset.width, y: position.height + dragOffset.height)
+//                    .offset(x: position.width + dragOffset.width, y: position.height + dragOffset.height)
                 
                 Obstacle()
                     .position(self.obstPosition)
@@ -47,15 +49,17 @@ struct ContentView: View {
                                 
             }
             .frame(width: geo.size.width, height: geo.size.height)
-            .background(Color.black)
+            .background(backgroundColor)
             .gesture(
                         DragGesture()
                             .updating($dragOffset, body: { (value, dragOffset, transaction) in
                                 dragOffset = value.translation
                             })
                             .onEnded { value in
-                                position.width += value.translation.width
-                                position.height += value.translation.height
+                                self.heliPosition.x += value.translation.width
+//                                position.width += value.translation.width
+                                self.heliPosition.y += value.translation.height
+//                                position.height += value.translation.height
                             }
                     )
                 .onReceive(self.timer) { _ in
@@ -102,6 +106,7 @@ struct ContentView: View {
         self.heliPosition = CGPoint(x: 100, y: 100) // helicopter to tarting position
         self.isPaused = false
         self.score = 0
+        self.backgroundColor = Color.black
     }
     
     func collisionDetection() {
@@ -109,6 +114,7 @@ struct ContentView: View {
         if abs(heliPosition.x - obstPosition.x) < (25 + 10) && abs(heliPosition.y - obstPosition.y) < (25 + 100) {
             self.pause()
             self.isPaused = true
+            self.backgroundColor = Color.red
         }
         
         
