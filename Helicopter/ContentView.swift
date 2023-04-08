@@ -9,6 +9,8 @@ struct ContentView: View {
     @State private var heliPosition = CGPoint(x: UIScreen.main.bounds.width / 3, y: UIScreen.main.bounds.height / 2)
     @State private var obstPosition = CGPoint(x:1000, y: 300)
     @State private var touchRelativePosition = CGPoint(x:0, y:0)
+    @State private var position: CGSize = .zero
+    @GestureState private var dragOffset: CGSize = .zero
     @State private var deltaX : CGFloat = 0
     @State private var deltaY : CGFloat = 0
     @State private var isPaused = false
@@ -28,11 +30,7 @@ struct ContentView: View {
                     .onReceive(self.timer) {_ in
                         self.gravity()
                     }
-                    .gesture(
-                    DragGesture()
-                        .onChanged{val in
-                            self.heliPosition = val.location
-                        })
+                    .offset(x: position.width + dragOffset.width, y: position.height + dragOffset.height)
                 
                 Obstacle()
                     .position(self.obstPosition)
@@ -50,40 +48,16 @@ struct ContentView: View {
             }
             .frame(width: geo.size.width, height: geo.size.height)
             .background(Color.black)
-//            .onTapGesture { val in
-//                self.heliPosition.x = val.x
-//                self.heliPosition.y = val.y
-//            }
-//            .gesture(
-//            DragGesture()
-//                .onChanged{ val in
-//
-//                    deltaX += self.heliPosition.x - val.location.x
-//                    deltaY += self.heliPosition.y - val.location.y
-//
-//                    self.heliPosition = CGPoint(x: self.heliPosition.x + val.location.x - deltaX,
-//                                                y: self.heliPosition.y + val.location.y - deltaY)
-//                }
-//                .onEnded{ val in
-//                    deltaX = 0
-//                    deltaY = 0
-//                }
-//            )
-//            TapGesture()
-//                .onEnded{
-//                    withAnimation{
-//                        self.heliPosition = self.heliPosition
-//                    }
-//                }
-//                .simultaneously(with: DragGesture()
-//                    .onChanged{val in
-//                        self.heliPosition = val.location
-//
-//                    }
-//                    .onEnded{val in
-//                        self.heliPosition = val.location
-//                    }
-//                )
+            .gesture(
+                        DragGesture()
+                            .updating($dragOffset, body: { (value, dragOffset, transaction) in
+                                dragOffset = value.translation
+                            })
+                            .onEnded { value in
+                                position.width += value.translation.width
+                                position.height += value.translation.height
+                            }
+                    )
                 .onReceive(self.timer) { _ in
                     self.collisionDetection();
                     self.score += 1
